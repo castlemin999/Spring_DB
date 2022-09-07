@@ -42,4 +42,33 @@ class MemberRepositoryV0Test {
 
     }
 
+    @Test
+    public void 수정() throws Exception{
+        // given
+        Member member = new Member("test4", 1000);
+        Member saveMember = memberRepository.save(member);
+
+        // when
+        int updateCount = memberRepository.update("test4", 200000);
+        Member findMember = memberRepository.findById("test4");
+
+        // then
+        assertThat(updateCount).isEqualTo(1);
+        assertThat(findMember.getMoney()).isEqualTo(200000);
+    }
+
+    @Test
+    public void 삭제() throws Exception{
+        // given
+        Member member = new Member("test5", 1000);
+        Member saveMember = memberRepository.save(member);
+
+        // when
+        int deleteCount = memberRepository.delete("test5");
+
+        // then
+        assertThat(deleteCount).isEqualTo(1);
+
+    }
+
 }
