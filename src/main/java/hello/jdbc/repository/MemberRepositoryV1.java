@@ -2,8 +2,11 @@ package hello.jdbc.repository;
 
 import hello.jdbc.connection.DBConnectionUtil;
 import hello.jdbc.domain.Member;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.jdbc.support.JdbcUtils;
 
+import javax.sql.DataSource;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -11,7 +14,11 @@ import java.sql.SQLException;
 import java.util.NoSuchElementException;
 
 @Slf4j
-public class MemberRepositoryV0 {
+@RequiredArgsConstructor
+public class MemberRepositoryV1 {
+
+    private final DataSource dataSource;
+
     public Member save(Member member) throws SQLException {
         String sql = "insert into member(member_id, money) values(?, ?)";
 
@@ -63,7 +70,7 @@ public class MemberRepositoryV0 {
         }
     }
 
-    public void update(String memberId, int money) throws SQLException {
+    public int update(String memberId, int money) throws SQLException {
         Connection conn = null;
         PreparedStatement stmt = null;
 
@@ -73,8 +80,8 @@ public class MemberRepositoryV0 {
             stmt = conn.prepareStatement(sql);
             stmt.setInt(1, money);
             stmt.setString(2, memberId);
-            int resultSize = stmt.executeUpdate();
-            log.info("resultSize={}", resultSize);
+            return stmt.executeUpdate();
+
         } catch (SQLException e) {
             log.error("error", e);
             throw e;
@@ -102,36 +109,15 @@ public class MemberRepositoryV0 {
     }
 
     private void close(Connection conn, PreparedStatement stmt, ResultSet rs) throws SQLException {
-
-
-        if (rs != null) {
-            try {
-                rs.close();
-            } catch (SQLException e) {
-                log.error("error : ", e);
-            }
-        }
-
-        if (stmt != null) {
-            try {
-                stmt.close();
-            } catch (SQLException e) {
-                log.error("error : ", e);
-            }
-        }
-
-        if (conn != null) {
-            try {
-                conn.close();
-            } catch (SQLException e) {
-                log.error("error : ", e);
-            }
-        }
-
+        JdbcUtils.closeResultSet(rs);
+        JdbcUtils.closeStatement(stmt);
+        JdbcUtils.closeConnection(conn);
     }
 
-    private Connection getConnection() {
-        return DBConnectionUtil.getConnection();
+    private Connection getConnection() throws SQLException {
+        Connection conn = dataSource.getConnection();
+        log.info("get connection={}, class={}", conn, conn.getClass());
+        return conn;
     }
 
 }
