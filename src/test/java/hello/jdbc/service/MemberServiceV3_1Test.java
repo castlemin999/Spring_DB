@@ -2,12 +2,14 @@ package hello.jdbc.service;
 
 import hello.jdbc.domain.Member;
 import hello.jdbc.repository.MemberRepositoryV2;
-import hello.jdbc.repository.MemberRepositoryV2Re;
+import hello.jdbc.repository.MemberRepositoryV3;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 import org.springframework.jdbc.datasource.DriverManagerDataSource;
+import org.springframework.transaction.PlatformTransactionManager;
 
 import java.sql.SQLException;
 
@@ -15,21 +17,22 @@ import static hello.jdbc.connection.ConnectionConst.*;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-class MemberServiceV2ReTest {
-
+class MemberServiceV3_1Test {
 
     public static final String MEMBER_A = "memberA";
     public static final String MEMBER_B = "memberB";
     public static final String MEMBER_EX = "ex";
 
-    private MemberRepositoryV2Re memberRepository;
-    private MemberServiceV2Re memberService;
+    private MemberRepositoryV3 memberRepository;
+    private MemberServiceV3_1 memberService;
 
     @BeforeEach
     void before() {
         DriverManagerDataSource dataSource = new DriverManagerDataSource(URL, USERNAME, PASSWORD);
-        memberRepository = new MemberRepositoryV2Re(dataSource);
-        memberService = new MemberServiceV2Re(dataSource, memberRepository);
+        memberRepository = new MemberRepositoryV3(dataSource);
+
+        PlatformTransactionManager transactionManager = new DataSourceTransactionManager(dataSource);
+        memberService = new MemberServiceV3_1(transactionManager , memberRepository);
     }
 
     @AfterEach
@@ -38,7 +41,6 @@ class MemberServiceV2ReTest {
         memberRepository.delete(MEMBER_B);
         memberRepository.delete(MEMBER_EX);
     }
-
 
     @Test
     @DisplayName("정상 이체")
